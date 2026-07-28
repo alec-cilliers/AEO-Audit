@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AEO Audit by VerdanTech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  /* =========================================================
+     VerdanTech AEO Audit — theme tokens
+     To rebrand later, change these values only.
+     ========================================================= */
+  :root {
+    --canvas:        #eef2ee;   /* page background (cool, greenish) */
+    --surface:       #ffffff;   /* cards */
+    --ink:           #10261c;   /* primary text */
+    --muted:         #5c6f65;   /* secondary text */
+    --line:          #d9e2db;   /* hairlines */
+    --primary:       #17694c;   /* VerdanTech green */
+    --primary-deep:  #0e4a35;
+    --leaf:          #57b26b;   /* bright accent */
+    --pass:          #1f9d57;
+    --partial:       #d69a2d;
+    --fail:          #cf5a4b;
+    --shadow:        0 18px 50px -24px rgba(16, 38, 28, 0.35);
+    --radius:        18px;
+    --maxw:          1080px;
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+    --body:    "Inter", system-ui, sans-serif;
+    --mono:    "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--body);
+    color: var(--ink);
+    background:
+      radial-gradient(1100px 520px at 85% -10%, rgba(87, 178, 107, 0.14), transparent 60%),
+      radial-gradient(900px 480px at -5% 0%, rgba(23, 105, 76, 0.10), transparent 55%),
+      var(--canvas);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- header ---------- */
+  header.site {
+    display: flex; align-items: center; gap: 12px;
+    padding: 26px 0 8px;
+  }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(150deg, var(--leaf), var(--primary));
+    display: grid; place-items: center;
+    box-shadow: 0 6px 16px -6px rgba(23,105,76,.6);
+  }
+  .brand-mark svg { width: 19px; height: 19px; }
+  .brand-name { font-family: var(--display); font-weight: 700; letter-spacing: -0.01em; font-size: 1.05rem; }
+  .brand-name span { color: var(--primary); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 46px 0 30px; max-width: 760px; }
+  .eyebrow {
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.72rem;
+    color: var(--primary);
+    margin: 0 0 18px;
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+    line-height: 1.03;
+    letter-spacing: -0.025em;
+    margin: 0 0 16px;
+  }
+  .hero h1 em { font-style: normal; color: var(--primary); }
+  .hero p.lede { font-size: 1.12rem; color: var(--muted); margin: 0 0 30px; max-width: 60ch; }
+
+  /* ---------- search ---------- */
+  .search {
+    display: flex; gap: 10px; background: var(--surface);
+    padding: 8px; border-radius: 14px; border: 1px solid var(--line);
+    box-shadow: var(--shadow); max-width: 560px;
+  }
+  .search input {
+    flex: 1; border: 0; outline: 0; font-family: var(--body);
+    font-size: 1.02rem; padding: 14px 14px; color: var(--ink);
+    background: transparent; min-width: 0;
+  }
+  .search input::placeholder { color: #9aa8a0; }
+  .btn {
+    border: 0; cursor: pointer; font-family: var(--display); font-weight: 600;
+    font-size: 1rem; color: #fff; padding: 0 22px; border-radius: 10px;
+    background: linear-gradient(160deg, var(--primary), var(--primary-deep));
+    transition: transform .12s ease, box-shadow .12s ease; white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -10px rgba(14,74,53,.7); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
+  .trust { margin: 16px 2px 0; font-size: .86rem; color: var(--muted); }
+  .err { color: var(--fail); font-size: .92rem; margin: 12px 2px 0; min-height: 1em; }
+
+  /* ---------- loading ---------- */
+  .loading { display: none; padding: 40px 0 20px; }
+  .loading.show { display: block; }
+  .loading .bar {
+    height: 6px; border-radius: 6px; background: var(--line); overflow: hidden; max-width: 560px;
+  }
+  .loading .bar i {
+    display: block; height: 100%; width: 40%;
+    background: linear-gradient(90deg, var(--leaf), var(--primary));
+    border-radius: 6px; animation: slide 1.3s ease-in-out infinite;
+  }
+  @keyframes slide { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }
+  .loading .steps { margin: 18px 2px 0; font-family: var(--mono); font-size: .85rem; color: var(--muted); }
+
+  /* ---------- results ---------- */
+  .results { display: none; padding: 30px 0 70px; }
+  .results.show { display: block; animation: rise .5s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .scorecard {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 34px; display: grid; grid-template-columns: 260px 1fr; gap: 34px; align-items: center;
+  }
+  @media (max-width: 720px) { .scorecard { grid-template-columns: 1fr; text-align: center; } }
+
+  .gauge-wrap { justify-self: center; position: relative; width: 240px; height: 200px; }
+  .gauge-num {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding-top: 24px;
+  }
+  .gauge-num b {
+    font-family: var(--mono); font-weight: 600; font-size: 3.5rem; line-height: 1;
+    letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+  }
+  .gauge-num small { font-family: var(--mono); color: var(--muted); font-size: .8rem; margin-top: 4px; }
+
+  .score-meta .grade {
+    display: inline-block; font-family: var(--mono); font-size: .74rem;
+    text-transform: uppercase; letter-spacing: .14em; padding: 6px 12px;
+    border-radius: 999px; background: rgba(23,105,76,.09); color: var(--primary); margin-bottom: 14px;
+  }
+  .score-meta h2 {
+    font-family: var(--display); font-weight: 700; font-size: 1.55rem;
+    letter-spacing: -.02em; margin: 0 0 8px; line-height: 1.15;
+  }
+  .score-meta .dom { font-family: var(--mono); font-size: .9rem; color: var(--muted); word-break: break-all; }
+
+  /* ---------- category preview / report ---------- */
+  .section-title {
+    font-family: var(--display); font-weight: 700; font-size: 1.25rem;
+    letter-spacing: -.02em; margin: 40px 2px 16px;
+  }
+  .cats { display: grid; gap: 14px; position: relative; }
+  .cat {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px;
+  }
+  .cat-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+  .cat-head h3 { font-family: var(--display); font-weight: 600; font-size: 1.05rem; margin: 0; }
+  .cat-head .cs { font-family: var(--mono); font-weight: 600; font-size: .95rem; }
+  .cat .tag { color: var(--muted); font-size: .88rem; margin: 2px 0 12px; }
+  .track { height: 8px; border-radius: 8px; background: var(--line); overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 8px; width: 0; transition: width 1s ease; }
+
+  .checks { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 12px; }
+  .check { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .check:first-child { border-top: 0; padding-top: 4px; }
+  .ic { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; margin-top: 2px; }
+  .ic svg { width: 12px; height: 12px; stroke: #fff; stroke-width: 3; fill: none; }
+  .ic.pass { background: var(--pass); } .ic.partial { background: var(--partial); } .ic.fail { background: var(--fail); }
+  .check .lbl { font-weight: 600; font-size: .98rem; }
+  .check .det { color: var(--muted); font-size: .9rem; margin-top: 2px; }
+  .check .fix { font-size: .88rem; margin-top: 6px; padding: 8px 12px; border-radius: 9px;
+    background: rgba(23,105,76,.06); color: var(--primary-deep); }
+  .check .fix b { font-family: var(--mono); font-weight: 600; font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; display: block; margin-bottom: 2px; color: var(--primary); }
+
+  /* gate */
+  .gate-zone { position: relative; }
+  .locked .cat .checks { display: none; }
+  .locked .cat { filter: blur(0); }
+  .locked .preview-blur { filter: blur(6px); opacity: .55; pointer-events: none; user-select: none; }
+  .gate {
+    position: absolute; inset: 0; display: grid; place-items: center; padding: 20px;
+  }
+  .gate-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 32px; max-width: 440px; width: 100%; text-align: center;
+  }
+  .gate-card .lock { width: 46px; height: 46px; margin: 0 auto 14px; border-radius: 12px;
+    background: rgba(23,105,76,.09); display: grid; place-items: center; }
+  .gate-card .lock svg { width: 22px; height: 22px; stroke: var(--primary); fill: none; stroke-width: 2; }
+  .gate-card h3 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; margin: 0 0 8px; letter-spacing: -.02em; }
+  .gate-card p { color: var(--muted); margin: 0 0 20px; font-size: .96rem; }
+  .gate-form { display: flex; gap: 8px; }
+  .gate-form input {
+    flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 13px 14px;
+    font-family: var(--body); font-size: 1rem; outline: 0; min-width: 0;
+  }
+  .gate-form input:focus { border-color: var(--primary); }
+  .gate-note { font-size: .78rem; color: var(--muted); margin: 14px 0 0; }
+
+  footer.site { padding: 34px 0 50px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); margin-top: 20px; }
+
+  :focus-visible { outline: 3px solid rgba(23,105,76,.4); outline-offset: 2px; border-radius: 6px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" fill="#fff" opacity=".22"/><path d="M12 3c-1 4-4 5.5-4 9a4 4 0 0 0 8 0c0-3.5-3-5-4-9Z" fill="#fff"/></svg>
+      </div>
+      <div class="brand-name">Verdan<span>Tech</span></div>
+    </header>
+
+    <section class="hero" id="hero">
+      <p class="eyebrow">Answer Engine Optimisation audit</p>
+      <h1>Find out if AI can <em>actually see</em> your website.</h1>
+      <p class="lede">Search engines are being replaced by answer engines. Enter your website below and we will check how ready it is to be found, understood and quoted by tools like ChatGPT, Perplexity and Google AI.</p>
+
+      <div class="search">
+        <input id="domain" type="text" inputmode="url" autocomplete="off"
+          placeholder="yourwebsite.com" aria-label="Your website address" />
+        <button class="btn" id="go">Audit my site</button>
+      </div>
+      <p class="err" id="err"></p>
+      <p class="trust">Free instant report. No account needed.</p>
+    </section>
+
+    <section class="loading" id="loading" aria-live="polite">
+      <div class="bar"><i></i></div>
+      <p class="steps" id="steps">Reaching your website…</p>
+    </section>
+
+    <section class="results" id="results">
+      <div class="scorecard">
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 240 200" width="240" height="200" aria-hidden="true">
+            <defs>
+              <linearGradient id="gArc" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#57b26b"/>
+                <stop offset="100%" stop-color="#17694c"/>
+              </linearGradient>
+            </defs>
+            <path id="track" d="M 30 175 A 90 90 0 1 1 210 175" fill="none"
+              stroke="#d9e2db" stroke-width="18" stroke-linecap="round"/>
+            <path id="value" d="M 30 175 A 90 90 0 1 1 210 175" fill="none"
+              stroke="url(#gArc)" stroke-width="18" stroke-linecap="round"/>
+          </svg>
+          <div class="gauge-num">
+            <b id="scoreNum">0</b>
+            <small>out of 100</small>
+          </div>
+        </div>
+        <div class="score-meta">
+          <span class="grade" id="grade">—</span>
+          <h2 id="headline">—</h2>
+          <div class="dom" id="domOut">—</div>
+        </div>
+      </div>
+
+      <h2 class="section-title" id="reportTitle">Your breakdown</h2>
+
+      <div class="gate-zone">
+        <div class="cats" id="cats"></div>
+
+        <div class="gate" id="gate">
+          <div class="gate-card">
+            <div class="lock" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            </div>
+            <h3>Unlock your full report</h3>
+            <p>See every check, what it means and exactly how to fix it. Enter your email and your report opens instantly.</p>
+            <div class="gate-form">
+              <input id="email" type="email" placeholder="you@company.com" aria-label="Your email address" />
+              <button class="btn" id="unlock">Unlock report</button>
+            </div>
+            <p class="err" id="gateErr" style="text-align:center"></p>
+            <p class="gate-note">We will send your report and occasional AEO tips. Unsubscribe any time.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site">
+      Built by VerdanTech · Answer Engine Optimisation audit
+    </footer>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { data: null };
+
+  var ARC_LEN = 424; // length of the gauge arc path (measured below)
+
+  // Measure the arc precisely so the fill maps cleanly to 0–100.
+  window.addEventListener("load", function () {
+    try { ARC_LEN = $("value").getTotalLength(); } catch (e) {}
+    var v = $("value");
+    v.style.strokeDasharray = ARC_LEN;
+    v.style.strokeDashoffset = ARC_LEN;
+  });
+
+  function colourFor(score) {
+    if (score >= 70) return ["#57b26b", "#17694c"];
+    if (score >= 45) return ["#e6b34d", "#d69a2d"];
+    return ["#e08072", "#cf5a4b"];
+  }
+
+  function iconSvg(status) {
+    if (status === "pass") return '<svg viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></svg>';
+    if (status === "partial") return '<svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>';
+    return '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  }
+
+  var loadingMsgs = [
+    "Reaching your website…",
+    "Reading your page structure…",
+    "Checking structured data…",
+    "Looking for AI crawler access…",
+    "Scoring answer readiness…",
+    "Building your report…"
+  ];
+
+  function runLoading() {
+    var i = 0;
+    $("steps").textContent = loadingMsgs[0];
+    return setInterval(function () {
+      i = (i + 1) % loadingMsgs.length;
+      $("steps").textContent = loadingMsgs[i];
+    }, 900);
+  }
+
+  function animateScore(target) {
+    var start = performance.now(), dur = 1200;
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { $("scoreNum").textContent = target; setArc(target); return; }
+    function frame(now) {
+      var t = Math.min(1, (now - start) / dur);
+      var eased = 1 - Math.pow(1 - t, 3);
+      $("scoreNum").textContent = Math.round(eased * target);
+      setArc(eased * target);
+      if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function setArc(score) {
+    var v = $("value");
+    v.style.strokeDashoffset = ARC_LEN - (ARC_LEN * (score / 100));
+    var c = colourFor(score);
+    document.querySelector("#gArc stop:first-child").setAttribute("stop-color", c[0]);
+    document.querySelector("#gArc stop:last-child").setAttribute("stop-color", c[1]);
+  }
+
+  function renderCategories(cats, locked) {
+    var host = $("cats");
+    host.className = "cats" + (locked ? " locked" : "");
+    host.innerHTML = "";
+    cats.forEach(function (cat) {
+      var pct = Math.round((cat.score / cat.max) * 100);
+      var band = pct >= 70 ? "var(--pass)" : pct >= 45 ? "var(--partial)" : "var(--fail)";
+      var el = document.createElement("div");
+      el.className = "cat" + (locked ? " preview-blur" : "");
+      var checksHtml = "";
+      if (!locked) {
+        checksHtml = '<ul class="checks">' + cat.checks.map(function (ch) {
+          var fix = (ch.status !== "pass" && ch.fix)
+            ? '<div class="fix"><b>How to fix</b>' + esc(ch.fix) + '</div>' : '';
+          return '<li class="check"><span class="ic ' + ch.status + '">' + iconSvg(ch.status) + '</span>'
+            + '<div><div class="lbl">' + esc(ch.label) + '</div>'
+            + '<div class="det">' + esc(ch.detail) + '</div>' + fix + '</div></li>';
+        }).join("") + '</ul>';
+      }
+      el.innerHTML =
+        '<div class="cat-head"><h3>' + esc(cat.name) + '</h3>'
+        + '<span class="cs" style="color:' + band + '">' + cat.score + '/' + cat.max + '</span></div>'
+        + '<div class="tag">' + esc(cat.tagline) + '</div>'
+        + '<div class="track"><i style="background:' + band + '"></i></div>'
+        + checksHtml;
+      host.appendChild(el);
+      // animate the bar fill
+      requestAnimationFrame(function () {
+        setTimeout(function () { el.querySelector(".track i").style.width = pct + "%"; }, 60);
+      });
+    });
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function showResults(data) {
+    state.data = data;
+    $("hero").style.display = "none";
+    $("loading").classList.remove("show");
+    $("results").classList.add("show");
+    $("grade").textContent = data.grade;
+    $("headline").textContent = data.headline;
+    $("domOut").textContent = data.url;
+    animateScore(data.score);
+    renderCategories(data.categories, true);   // locked preview
+    $("gate").style.display = "grid";
+    $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function unlockReport() {
+    $("gate").style.display = "none";
+    $("reportTitle").textContent = "Your full report";
+    renderCategories(state.data.categories, false); // full, unlocked
+  }
+
+  // ---- audit ----
+  function runAudit() {
+    var domain = $("domain").value.trim();
+    $("err").textContent = "";
+    if (!domain || domain.indexOf(".") === -1) {
+      $("err").textContent = "Please enter a website address, like yourwebsite.com";
+      return;
+    }
+    $("go").disabled = true; $("go").textContent = "Auditing…";
+    $("loading").classList.add("show");
+    var timer = runLoading();
+
+    fetch("/api/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain: domain })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      clearInterval(timer);
+      $("go").disabled = false; $("go").textContent = "Audit my site";
+      if (data.error) {
+        $("loading").classList.remove("show");
+        $("err").textContent = data.error;
+        return;
+      }
+      showResults(data);
+    })
+    .catch(function () {
+      clearInterval(timer);
+      $("go").disabled = false; $("go").textContent = "Audit my site";
+      $("loading").classList.remove("show");
+      $("err").textContent = "We could not complete the audit. Please try again.";
+    });
+  }
+
+  // ---- lead capture ----
+  function submitEmail() {
+    var email = $("email").value.trim();
+    $("gateErr").textContent = "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      $("gateErr").textContent = "Please enter a valid email address.";
+      return;
+    }
+    $("unlock").disabled = true; $("unlock").textContent = "Unlocking…";
+    fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email,
+        domain: state.data ? state.data.domain : "",
+        score: state.data ? state.data.score : ""
+      })
+    })
+    .then(function () { unlockReport(); })
+    .catch(function () { unlockReport(); }) // never trap the user behind a storage error
+    .finally(function () { $("unlock").disabled = false; $("unlock").textContent = "Unlock report"; });
+  }
+
+  $("go").addEventListener("click", runAudit);
+  $("domain").addEventListener("keydown", function (e) { if (e.key === "Enter") runAudit(); });
+  $("unlock").addEventListener("click", submitEmail);
+  $("email").addEventListener("keydown", function (e) { if (e.key === "Enter") submitEmail(); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "verdantech-aeo-audit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AEO and brand audit tool for VerdanTech",
+  "dependencies": {
+    "cheerio": "^1.2.0"
+  }
+}
