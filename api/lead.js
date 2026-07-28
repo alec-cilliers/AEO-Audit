@@ -5,7 +5,7 @@
 
 // STEP 4: paste your Google Apps Script URL between the quotes.
 // It will look like: https://script.google.com/macros/s/AKfy..../exec
-const GOOGLE_SCRIPT_URL = "";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4CQxiFD_LtxQlZrAjoLSPFAJKI_LsiP3SA9D--IU33BAdEIVAzJ7o5_W6A6XOh-Jp/exec";
 
 module.exports = async (req, res) => {
   res.setHeader("Content-Type", "application/json");
