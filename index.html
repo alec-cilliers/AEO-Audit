@@ -472,7 +472,8 @@
       body: JSON.stringify({
         email: email,
         domain: state.data ? state.data.domain : "",
-        score: state.data ? state.data.score : ""
+        score: state.data ? state.data.score : "",
+        report: state.data || null
       })
     })
     .then(function () { unlockReport(); })
