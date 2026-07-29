@@ -4,8 +4,13 @@
 
 const cheerio = require("cheerio");
 
+// Present as a normal web browser. Some sites and their security layers block
+// unknown "bot" user agents outright, which makes a legitimate audit fail even
+// though the page is perfectly reachable by a real visitor. A browser-like
+// identity avoids those false blocks. The tool still only reads public pages,
+// never logs in and never submits anything.
 const USER_AGENT =
-  "Mozilla/5.0 (compatible; VerdanTechAuditBot/1.0; +https://verdan.tech)";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
 // Major AI answer-engine crawlers. If a site blocks these in robots.txt,
 // it is effectively invisible to the tools that power AI answers.
@@ -20,14 +25,19 @@ const AI_BOTS = [
 ];
 
 // Fetch a URL with a timeout so a slow site can never hang the function.
-async function safeFetch(url, timeoutMs = 8000) {
+async function safeFetch(url, timeoutMs = 12000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, {
       signal: controller.signal,
       redirect: "follow",
-      headers: { "User-Agent": USER_AGENT },
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-GB,en;q=0.9",
+      },
     });
     const text = await res.text();
     return { ok: res.ok, status: res.status, text, finalUrl: res.url };
@@ -36,6 +46,19 @@ async function safeFetch(url, timeoutMs = 8000) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+// Try to reach the homepage, falling back to the other host form (with or
+// without "www.") since many sites only answer on one of the two.
+async function fetchHomepage(url) {
+  let res = await safeFetch(url);
+  if (res.ok && res.text) return { res, url };
+  const alt = url.includes("://www.")
+    ? url.replace("://www.", "://")
+    : url.replace("://", "://www.");
+  res = await safeFetch(alt);
+  if (res.ok && res.text) return { res, url: alt };
+  return { res: null, url };
 }
 
 // Turn whatever the user typed into a clean https URL and a bare domain.
@@ -69,23 +92,33 @@ function scoreChecks(checks) {
 // ---- The analysis ----------------------------------------------------------
 
 async function analyse(url, domain) {
-  const home = await safeFetch(url);
-  if (!home.ok || !home.text) {
+  const attempt = await fetchHomepage(url);
+  if (!attempt.res || !attempt.res.text) {
     return {
       error:
         "We could not reach that website. Check the spelling, or the site may be blocking automated visits.",
     };
   }
 
+  const home = attempt.res;
   const html = home.text;
   const $ = cheerio.load(html);
-  const finalUrl = home.finalUrl || url;
+  const finalUrl = home.finalUrl || attempt.url;
+
+  // Work out the correct base host to request the supporting files from,
+  // following any redirect (for example a non-www address to a www one).
+  let originBase = attempt.url.replace(/\/+$/, "");
+  try {
+    originBase = new URL(finalUrl).origin;
+  } catch (e) {
+    // keep the fallback base if the final URL cannot be parsed
+  }
 
   // Pull the supporting files in parallel.
   const [robots, llms, sitemap] = await Promise.all([
-    safeFetch(`${url}/robots.txt`, 5000),
-    safeFetch(`${url}/llms.txt`, 5000),
-    safeFetch(`${url}/sitemap.xml`, 5000),
+    safeFetch(`${originBase}/robots.txt`, 5000),
+    safeFetch(`${originBase}/llms.txt`, 5000),
+    safeFetch(`${originBase}/sitemap.xml`, 5000),
   ]);
 
   // Gather raw signals from the homepage.
