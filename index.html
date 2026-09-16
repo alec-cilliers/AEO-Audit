@@ -476,21 +476,22 @@
       $("gateErr").textContent = "Please tick the box to allow us to send your report.";
       return;
     }
-    $("unlock").disabled = true; $("unlock").textContent = "Unlocking…";
-    fetch("/api/lead", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: email,
-        domain: state.data ? state.data.domain : "",
-        score: state.data ? state.data.score : "",
-        report: state.data || null,
-        consent: true
-      })
-    })
-    .then(function () { unlockReport(); })
-    .catch(function () { unlockReport(); }) // never trap the user behind a storage error
-    .finally(function () { $("unlock").disabled = false; $("unlock").textContent = "Unlock report"; });
+    // Unlock the report immediately. The lead capture (sheet write + emails)
+    // is fired off in the background, so the visitor never waits on email.
+    try {
+      fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          domain: state.data ? state.data.domain : "",
+          score: state.data ? state.data.score : "",
+          report: state.data || null,
+          consent: true
+        })
+      }).catch(function () {});
+    } catch (e) {}
+    unlockReport();
   }
 
   $("go").addEventListener("click", runAudit);
