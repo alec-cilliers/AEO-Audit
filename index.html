@@ -208,6 +208,9 @@
   }
   .gate-form input:focus { border-color: var(--primary); }
   .gate-note { font-size: .78rem; color: var(--muted); margin: 14px 0 0; }
+  .gate-consent { display: flex; align-items: flex-start; gap: 9px; margin: 16px 2px 2px; text-align: left; }
+  .gate-consent input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; cursor: pointer; }
+  .gate-consent label { font-size: .82rem; color: var(--muted); line-height: 1.4; cursor: pointer; }
 
   footer.site { padding: 34px 0 50px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); margin-top: 20px; }
 
@@ -281,7 +284,11 @@
             <p>See every check, what it means and exactly how to fix it. Enter your email and your report opens instantly.</p>
             <div class="gate-form">
               <input id="email" type="email" placeholder="you@company.com" aria-label="Your email address" />
-              <button class="btn" id="unlock">Unlock report</button>
+              <button class="btn" id="unlock" disabled>Unlock report</button>
+            </div>
+            <div class="gate-consent">
+              <input id="consent" type="checkbox" aria-label="Consent to VerdanTech using my email" />
+              <label for="consent">I agree to VerdanTech using my email to send my report.</label>
             </div>
             <p class="err" id="gateErr" style="text-align:center"></p>
             <p class="gate-note">We will send your report and occasional AEO tips. Unsubscribe any time.</p>
@@ -465,6 +472,10 @@
       $("gateErr").textContent = "Please enter a valid email address.";
       return;
     }
+    if (!$("consent").checked) {
+      $("gateErr").textContent = "Please tick the box to allow us to send your report.";
+      return;
+    }
     $("unlock").disabled = true; $("unlock").textContent = "Unlocking…";
     fetch("/api/lead", {
       method: "POST",
@@ -473,7 +484,8 @@
         email: email,
         domain: state.data ? state.data.domain : "",
         score: state.data ? state.data.score : "",
-        report: state.data || null
+        report: state.data || null,
+        consent: true
       })
     })
     .then(function () { unlockReport(); })
@@ -484,6 +496,10 @@
   $("go").addEventListener("click", runAudit);
   $("domain").addEventListener("keydown", function (e) { if (e.key === "Enter") runAudit(); });
   $("unlock").addEventListener("click", submitEmail);
+  $("consent").addEventListener("change", function () {
+    $("unlock").disabled = !this.checked;
+    if (this.checked) $("gateErr").textContent = "";
+  });
   $("email").addEventListener("keydown", function (e) { if (e.key === "Enter") submitEmail(); });
 })();
 </script>
