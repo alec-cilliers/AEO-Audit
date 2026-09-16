@@ -175,7 +175,7 @@ module.exports = async (req, res) => {
   try {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(body || "{}");
-    const { email, domain, score, report } = body || {};
+    const { email, domain, score, report, consent } = body || {};
 
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ""));
     if (!valid) {
@@ -193,6 +193,7 @@ module.exports = async (req, res) => {
             email: String(email).trim(),
             domain: String(domain || "").trim(),
             score: String(score == null ? "" : score),
+            consent: consent ? "Yes" : "No",
             timestamp: new Date().toISOString(),
           }),
         });
