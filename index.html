@@ -211,8 +211,14 @@
   .gate-consent { display: flex; align-items: flex-start; gap: 9px; margin: 16px 2px 2px; text-align: left; }
   .gate-consent input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; cursor: pointer; }
   .gate-consent label { font-size: .82rem; color: var(--muted); line-height: 1.4; cursor: pointer; }
+  .gate-consent + .gate-consent { margin-top: 10px; }
+  .gate-note a { color: var(--primary); }
 
   footer.site { padding: 34px 0 50px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); margin-top: 20px; }
+  footer.site p { margin: 0; }
+  footer.site .foot-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; }
+  footer.site .foot-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+  footer.site .foot-links a:hover { color: var(--primary); }
 
   :focus-visible { outline: 3px solid rgba(23,105,76,.4); outline-offset: 2px; border-radius: 6px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -290,15 +296,25 @@
               <input id="consent" type="checkbox" aria-label="Consent to VerdanTech using my email" />
               <label for="consent">I agree to VerdanTech using my email to send my report.</label>
             </div>
+            <div class="gate-consent">
+              <input id="marketing" type="checkbox" />
+              <label for="marketing">Yes, send me VerdanTech's newsletter and marketing emails. I can unsubscribe at any time.</label>
+            </div>
             <p class="err" id="gateErr" style="text-align:center"></p>
-            <p class="gate-note">We will send your report and occasional AEO tips. Unsubscribe any time.</p>
+            <p class="gate-note">We only send marketing emails if you tick the second box. See our <a href="https://www.verdan.tech/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>.</p>
           </div>
         </div>
       </div>
     </section>
 
     <footer class="site">
-      Built by VerdanTech · Answer Engine Optimisation audit
+      <p>Built by VerdanTech · Answer Engine Optimisation audit</p>
+      <nav class="foot-links" aria-label="Legal">
+        <a href="https://www.verdan.tech/terms-and-conditions">Terms of Use</a>
+        <a href="https://www.verdan.tech/privacy-policy">Privacy Policy</a>
+        <a href="https://www.verdan.tech/paia-manual">PAIA Manual</a>
+        <a href="#cookie-settings">Cookie settings</a>
+      </nav>
     </footer>
   </div>
 
@@ -487,7 +503,8 @@
           domain: state.data ? state.data.domain : "",
           score: state.data ? state.data.score : "",
           report: state.data || null,
-          consent: true
+          consent: true,
+          marketing: $("marketing").checked
         })
       }).catch(function () {});
     } catch (e) {}
@@ -502,6 +519,243 @@
     if (this.checked) $("gateErr").textContent = "";
   });
   $("email").addEventListener("keydown", function (e) { if (e.key === "Enter") submitEmail(); });
+})();
+</script>
+<!-- ================= Cookie consent banner: styles ================= -->
+<style>
+  #vt-cookie-banner {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0d1b2a;
+    color: #e0e0e0;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 99999;
+    font-family: sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    border-radius: 12px;
+    border: 1px solid #00c2a8;
+    box-shadow: 0 0 20px rgba(0, 194, 168, 0.2);
+    max-width: 720px;
+    width: 90%;
+    box-sizing: border-box;
+    text-align: left;
+  }
+  #vt-cookie-banner[hidden] { display: none !important; }
+  #vt-cookie-banner .vt-cb-icon { font-size: 28px; flex-shrink: 0; }
+  #vt-cookie-banner .vt-cb-text { margin: 0 !important; color: #e0e0e0 !important; font-size: 13px !important; line-height: 1.5 !important; }
+  #vt-cookie-banner .vt-cb-text a { color: #00c2a8 !important; text-decoration: underline !important; }
+  #vt-cookie-banner .vt-cb-actions { display: flex; gap: 10px; flex-shrink: 0; }
+
+  /* Accept and Reject are deliberately identical in size */
+  #vt-cookie-banner .vt-cb-btn {
+    box-sizing: border-box !important;
+    width: 110px !important;
+    height: 42px !important;
+    padding: 0 12px !important;
+    margin: 0 !important;
+    border-radius: 6px !important;
+    border: 2px solid transparent !important;
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+    white-space: nowrap;
+    cursor: pointer;
+    color: #ffffff !important;
+  }
+  #vt-cookie-banner .vt-cb-accept {
+    background: linear-gradient(135deg, #00c2a8, #0077ff) !important;
+  }
+  #vt-cookie-banner .vt-cb-reject {
+    background: transparent !important;
+    border-color: #00c2a8 !important;
+  }
+  #vt-cookie-banner .vt-cb-btn:hover { opacity: 0.9; }
+  #vt-cookie-banner .vt-cb-reject:hover { background: rgba(0, 194, 168, 0.12) !important; opacity: 1; }
+  #vt-cookie-banner .vt-cb-btn:focus-visible,
+  #vt-cookie-banner .vt-cb-text a:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+  @media (max-width: 640px) {
+    #vt-cookie-banner { flex-direction: column; align-items: stretch; bottom: 12px; padding: 16px; gap: 12px; }
+    #vt-cookie-banner .vt-cb-icon { display: none; }
+    #vt-cookie-banner .vt-cb-actions { width: 100%; }
+    #vt-cookie-banner .vt-cb-btn { width: auto !important; flex: 1 1 0; }
+  }
+</style>
+
+<!-- ================= Cookie consent: logic and gated tracking ================= -->
+<script>
+(function () {
+  'use strict';
+
+  // ---- Settings -----------------------------------------------------------
+  var CONSENT_KEY     = 'vtCookieConsent';
+  var CONSENT_VERSION = '2026-10-15';            // change this to ask everyone again
+  var GA_ID           = 'G-GY114RQG1G';          // Google Analytics 4
+  var GOOGLE_ADS_ID   = '';                      // e.g. 'AW-123456789' if Google Ads tracking is used
+  var AHREFS_KEY      = 'hQX7nWKN3Seqhc011yso0A';
+  var PRIVACY_URL     = 'https://www.verdan.tech/privacy-policy';
+
+  // The old banner stored "cookieAccepted" without a real choice. Clear it so
+  // every visitor is asked properly.
+  try { localStorage.removeItem('cookieAccepted'); } catch (e) {}
+
+  // ---- Consent storage ----------------------------------------------------
+  function readConsent() {
+    try {
+      var raw = localStorage.getItem(CONSENT_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      return data && data.v === CONSENT_VERSION ? data.choice : null;
+    } catch (e) { return null; }
+  }
+
+  function saveConsent(choice) {
+    try {
+      localStorage.setItem(CONSENT_KEY, JSON.stringify({
+        choice: choice,
+        v: CONSENT_VERSION,
+        t: new Date().toISOString()
+      }));
+    } catch (e) {}
+  }
+
+  // ---- Tracking (only ever called after Accept) ----------------------------
+  var trackingLoaded = false;
+
+  function loadScript(src, attrs) {
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = src;
+    if (attrs) { for (var k in attrs) { s.setAttribute(k, attrs[k]); } }
+    document.head.appendChild(s);
+  }
+
+  function loadTracking() {
+    if (trackingLoaded) return;
+    trackingLoaded = true;
+
+    // Ahrefs Web Analytics
+    loadScript('https://analytics.ahrefs.com/analytics.js', { 'data-key': AHREFS_KEY });
+
+    // Google tag (Analytics and, if set, Google Ads)
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('consent', 'default', {
+      analytics_storage: 'granted',
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted'
+    });
+    window.gtag('js', new Date());
+    window.gtag('config', GA_ID);
+    if (GOOGLE_ADS_ID) { window.gtag('config', GOOGLE_ADS_ID); }
+    loadScript('https://www.googletagmanager.com/gtag/js?id=' + GA_ID);
+  }
+
+  // Remove analytics and advertising cookies after a Reject
+  function clearTrackingCookies() {
+    var host = location.hostname;
+    var parts = host.split('.');
+    var root = parts.slice(-2).join('.');
+    var domains = ['', host, '.' + host, root, '.' + root];
+    document.cookie.split(';').forEach(function (c) {
+      var name = c.split('=')[0].trim();
+      if (/^(_ga|_gid|_gat|_gcl|_gac|_fbp|_fbc)/.test(name)) {
+        domains.forEach(function (d) {
+          document.cookie = name + '=; Max-Age=0; path=/' + (d ? '; domain=' + d : '');
+        });
+      }
+    });
+  }
+
+  // ---- Banner -------------------------------------------------------------
+  var banner = null;
+
+  function buildBanner() {
+    if (banner) return banner;
+    banner = document.createElement('div');
+    banner.id = 'vt-cookie-banner';
+    banner.setAttribute('role', 'dialog');
+    banner.setAttribute('aria-label', 'Cookie preferences');
+    banner.setAttribute('aria-live', 'polite');
+    banner.hidden = true;
+    banner.innerHTML =
+      '<span class="vt-cb-icon" aria-hidden="true">\uD83C\uDF6A</span>' +
+      '<p class="vt-cb-text">We use essential cookies to make this site work. With your consent, ' +
+      'we would also like to use analytics and advertising cookies (such as Google Analytics and Google Ads) ' +
+      'to understand how the site is used and improve our marketing. These only load if you click Accept. ' +
+      'You can change your choice at any time through Cookie settings in the footer. ' +
+      '<a href="' + PRIVACY_URL + '" target="_blank" rel="noopener">Privacy Policy</a></p>' +
+      '<div class="vt-cb-actions">' +
+        '<button type="button" class="vt-cb-btn vt-cb-reject">Reject</button>' +
+        '<button type="button" class="vt-cb-btn vt-cb-accept">Accept</button>' +
+      '</div>';
+    document.body.appendChild(banner);
+
+    banner.querySelector('.vt-cb-accept').addEventListener('click', function () {
+      saveConsent('accepted');
+      hideBanner();
+      loadTracking();
+    });
+
+    banner.querySelector('.vt-cb-reject').addEventListener('click', function () {
+      var wasLoaded = trackingLoaded;
+      saveConsent('rejected');
+      clearTrackingCookies();
+      hideBanner();
+      // If tracking was already running on this page, reload so it stops.
+      if (wasLoaded) { location.reload(); }
+    });
+
+    return banner;
+  }
+
+  function showBanner(focus) {
+    buildBanner().hidden = false;
+    if (focus) { banner.querySelector('.vt-cb-accept').focus(); }
+  }
+
+  function hideBanner() {
+    if (banner) banner.hidden = true;
+  }
+
+  // Public hook, in case a button anywhere needs it: vtCookieSettings()
+  window.vtCookieSettings = function () { showBanner(true); };
+
+  // Footer "Cookie settings" link: any link ending in #cookie-settings,
+  // or any element with the class vt-cookie-settings, reopens the banner.
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest
+      ? e.target.closest('a[href$="#cookie-settings"], .vt-cookie-settings')
+      : null;
+    if (!el) return;
+    e.preventDefault();
+    e.stopPropagation();
+    showBanner(true);
+  }, true);
+
+  // ---- Start --------------------------------------------------------------
+  var consent = readConsent();
+  if (consent === 'accepted') { loadTracking(); }
+
+  function init() {
+    if (consent === null || location.hash === '#cookie-settings') {
+      showBanner(location.hash === '#cookie-settings');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 </body>
