@@ -158,7 +158,9 @@ function buildTeamEmail(lead) {
     esc(lead.domain) +
     "</p><p><strong>Score:</strong> " +
     esc(lead.score) +
-    "/100</p><p><strong>Time:</strong> " +
+    "/100</p><p><strong>Newsletter and marketing consent:</strong> " +
+    (lead.marketing ? "Yes" : "No (do not add to the newsletter list)") +
+    "</p><p><strong>Time:</strong> " +
     new Date().toLocaleString("en-GB") +
     "</p></div>"
   );
@@ -175,7 +177,7 @@ module.exports = async (req, res) => {
   try {
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(body || "{}");
-    const { email, domain, score, report, consent } = body || {};
+    const { email, domain, score, report, consent, marketing } = body || {};
 
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ""));
     if (!valid) {
@@ -194,6 +196,8 @@ module.exports = async (req, res) => {
             domain: String(domain || "").trim(),
             score: String(score == null ? "" : score),
             consent: consent ? "Yes" : "No",
+            // Only rows with marketing = "Yes" may be added to the newsletter list.
+            marketing: marketing === true ? "Yes" : "No",
             timestamp: new Date().toISOString(),
           }),
         });
@@ -223,7 +227,7 @@ module.exports = async (req, res) => {
           to: TEAM_EMAIL,
           subject:
             "New AEO lead: " + (domain || "") + " (" + (score == null ? "" : score) + "/100)",
-          html: buildTeamEmail({ email: email, domain: domain, score: score }),
+          html: buildTeamEmail({ email: email, domain: domain, score: score, marketing: marketing === true }),
         })
       );
       try {
